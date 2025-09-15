@@ -8,7 +8,8 @@ from .models import db
 from .auth import auth_bp
 from .message import msg_bp
 from .utils import setup_logger, init_redis, logger
-from app import socketio
+
+socketio = SocketIO(async_mode='gevent')  # 初始化 socketio 实例
 
 def create_app():
     app = Flask(__name__)
@@ -35,7 +36,7 @@ def create_app():
     db.init_app(app)
     jwt = JWTManager(app)
     limiter = Limiter(key_func=get_remote_address, app=app)
-    socketio = SocketIO(app, cors_allowed_origins='*', async_mode='gevent')
+    socketio.init_app(app)  # 初始化 socketio
 
     # 注册蓝图
     app.register_blueprint(auth_bp)
@@ -51,4 +52,4 @@ def create_app():
     return app
 
 # 导出 socketio 实例供其他模块使用
-socketio = SocketIO(async_mode='gevent')
+__all__ = ['create_app', 'db', 'auth_bp', 'msg_bp', 'socketio']
