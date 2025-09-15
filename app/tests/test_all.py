@@ -33,7 +33,7 @@ def client():
 
 def test_register_login(client):
     # 测试注册 - 注意路由可能需要调整
-    rv = client.post('/register', json={
+    rv = client.post('/reg', json={
         'username': 'u1',
         'password': 'p1'
     })
