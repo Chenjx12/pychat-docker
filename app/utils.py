@@ -11,7 +11,7 @@ import os
 def init_redis():
     return redis.from_url(os.getenv('REDIS_URL', 'redis://redis:6379/0'), decode_responses=True)
 
-def setup_logger(app: Flask):
+def setup_logger():
     structlog.configure(
         processors=[
             structlog.stdlib.filter_by_level,
@@ -23,13 +23,7 @@ def setup_logger(app: Flask):
         logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )
-    gunicorn_logger = logging.getLogger('gunicorn.error')
-    app.logger.handlers = gunicorn_logger.handlers
-    app.logger.setLevel(logging.INFO)
-
-    # 创建一个 logger 实例
-    logger = structlog.get_logger()
-    return logger
+    return structlog.get_logger()
 
 # 在模块级别创建 logger 实例
-logger = setup_logger(None)  # 初始化 logger，传入 None 作为示例，实际使用时传入 Flask app 实例
+logger = setup_logger()  # 初始化 logger

@@ -45,6 +45,7 @@ def create_app():
     )
 
     # 初始化扩展
+    setup_logger(app)  # 配置日志
     db.init_app(app)
     jwt.init_app(app)
     limiter.init_app(app)
