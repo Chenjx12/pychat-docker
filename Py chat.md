@@ -100,20 +100,6 @@ networks:
 
 
 
-## .env
-
-```txt
-MYSQL_ROOT_PASSWORD=rootpass
-MYSQL_DATABASE=pychat
-MYSQL_USER=Xyxchat
-MYSQL_PASSWORD=1l5S79O.0
-SECRET_KEY=replace_me_with_32bytes_hex
-JWT_SECRET_KEY=another_32bytes_hex
-REDIS_URL=redis://redis:6379/0
-```
-
-
-
 ## .env.example
 
 ```
