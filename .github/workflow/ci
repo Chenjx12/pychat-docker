@@ -1,0 +1,63 @@
+# .github/workflows/ci.yml
+
+name: PyChat Docker CI/CD
+
+on:
+  push:
+    branches: [ main ]  # 当 main 分支有新提交时触发
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest  # 在最新的 Ubuntu 虚拟机上运行
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. 设置 Python 环境
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'  # 与你的项目一致
+
+      # 3. 安装依赖
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r app/requirements.txt
+
+      # 4. 运行测试
+      - name: Run tests
+        run: |
+          cd app
+          pytest tests/  # 假设你的测试文件在 app/tests/ 目录下
+
+  # 5. 构建和推送 Docker 镜像 (仅在主分支上的 tag 触发)
+  deploy-to-docker-hub:
+    needs: build-and-test  # 只有测试通过后才会执行
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')  # 仅在打 Tag 时触发
+
+    steps:
+      # 1. 再次检出代码 (因为这是一个独立 job)
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # 2. 登录 Docker Hub
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 3. 构建 Docker 镜像
+      - name: Build Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: .  # 构建上下文是项目根目录
+          file: ./app/Dockerfile  # 指定 Dockerfile 的位置
+          push: true  # 推送到镜像仓库
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/pychat-docker:latest  # 最新版
+            ${{ github.ref.replace('refs/tags/', '') }}  # 当前 Tag 名称 (如 v1.0.0)
