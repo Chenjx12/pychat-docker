@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"/>
+  <title>PyChat-Pro</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;margin:0;display:flex;flex-direction:column;height:100vh;background:#f5f5f5;}
+    #login,#chat{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;}
+    #chat{display:none;width:600px;margin:auto;background:#fff;border-radius:8px;box-shadow:0 0 10px rgba(0,0,0,.1);}
+    #messages{border:1px solid #ddd;height:400px;overflow-y:auto;width:100%;padding:10px;background:#fafafa;}
+    .msg{margin:4px 0;}
+    .self{color:#007bff;}
+    button{padding:6px 12px;margin:4px;cursor:pointer;}
+    input{padding:6px;width:200px;margin:4px;}
+    #input{width:calc(100% - 120px);}
+  </style>
+</head>
+<body>
+
+<!-- 登录页 -->
+<div id="login">
+  <h2>PyChat-Pro</h2>
+  <input id="username" placeholder="用户名" autocomplete="username"/>
+  <input id="password" type="password" placeholder="密码" autocomplete="current-password"/>
+  <div>
+    <button onclick="reg()">注册</button>
+    <button onclick="login()">登录</button>
+  </div>
+</div>
+
+<!-- 聊天页 -->
+<div id="chat">
+  <div id="messages"></div>
+  <div style="display:flex;padding:10px;">
+    <input id="input" placeholder="说点什么..."/>
+        <script>
+        /* 监听回车发送 */
+        $('input').addEventListener('keydown', e => { if (e.key === 'Enter') send(); });
+        </script>
+    <button onclick="send()">发送</button>
+    <button onclick="logout()">退出</button>
+  </div>
+</div>
+
+<script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+<script>
+/* ====== 工具函数 ====== */
+const $  = id => document.getElementById(id);
+const API = (path, body) => fetch(path,{method:'POST',body}).then(r=>r.json());
+
+/* 从 Cookie 拿 JWT（服务端已 Set-Cookie） */
+function getCookie(name) {
+  const v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+  return v ? v[2] : null;
+}
+
+/* 登录成功后统一处理 */
+function enterChat(userName){
+  localStorage.setItem('user', userName);   // 仅用于前端展示
+  $('login').style.display = 'none';
+  $('chat').style.display = 'flex';
+  loadHistory();
+  connectWS();
+}
+
+/* ====== 注册 / 登录 ====== */
+async function reg(){
+  const fd = new FormData();
+  fd.append('username', username.value);
+  fd.append('password', password.value);
+  const res = await API('/reg', fd);
+  alert(res.code === 0 ? '注册成功' : res.msg || '注册失败');
+}
+
+async function login(){
+  const fd = new FormData();
+  fd.append('username', username.value);
+  fd.append('password', password.value);
+  const res = await API('/login', fd);
+  if(res.code === 0){
+    enterChat(username.value);
+  }else{
+    alert(res.msg || '登录失败');
+  }
+}
+
+/* 退出：清 cookie + 刷新页面 */
+function logout(){
+  document.cookie = 'access_token_cookie=; Max-Age=0; path=/';
+  location.reload();
+}
+
+/* ====== 历史消息 ====== */
+async function loadHistory(){
+  const res = await fetch('/history').then(r=>r.json());
+  res.data.forEach(m => addMsg(m.from_user, m.body, false));
+}
+
+/* ====== WebSocket ====== */
+let socket;
+function connectWS(){
+  const token = getCookie('access_token_cookie');
+  if(!token){ alert('未登录'); location.reload(); return; }
+
+  socket = io({
+    transports: ['websocket'],
+    query: {token}          // JWT 放在 query，服务端从 auth.token 取
+  });
+
+  socket.on('connect', () => {
+    console.log('[WS] 已连接');
+  });
+
+  socket.on('connect_error', (err) => {
+    console.error('[WS] 连接失败', err.message);
+    // 常见 401/422 说明 JWT 失效
+    if(err.message.includes('401') || err.message.includes('422')){
+      alert('登录已失效，请重新登录');
+      logout();
+    }
+  });
+
+  socket.on('chat', (d) => {
+    addMsg(d.from, d.body, d.from === localStorage.getItem('user'));
+  });
+}
+
+/* ====== 发消息 ====== */
+function send(){
+  const txt = $('input').value.trim();
+  if(!txt || !socket) return;
+  socket.emit('chat', {body: txt});
+  $('input').value = '';
+}
+
+/* 渲染消息 */
+function addMsg(user, body, self = false){
+  const div = document.createElement('div');
+  div.className = 'msg' + (self ? ' self' : '');
+  div.textContent = `${user}: ${body}`;
+  $('messages').appendChild(div);
+  $('messages').scrollTop = $('messages').scrollHeight;
+}
+
+/* 页面加载时若已有 JWT 直接进聊天 */
+window.onload = () => {
+  if(getCookie('access_token_cookie')) enterChat(localStorage.getItem('user') || '');
+};
+</script>
+</body>
+</html>

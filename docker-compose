@@ -1,0 +1,60 @@
+version: "3.9"
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: pychat-db
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./sql:/docker-entrypoint-initdb.d
+      - db_data:/var/lib/mysql
+    networks:
+      - pychat-net
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: pychat-redis
+    restart: unless-stopped
+    networks:
+      - pychat-net
+
+  app:
+    build: ./app
+    container_name: pychat-app
+    restart: unless-stopped
+    env_file: .env
+    depends_on:
+      - db
+      - redis
+    networks:
+      - pychat-net
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 10s
+      retries: 3
+
+  nginx:
+    image: nginx:alpine
+    container_name: pychat-nginx
+    restart: unless-stopped
+    ports:
+      - "9999:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
+      - app_upload:/app/upload:ro
+    depends_on:
+      - app
+    networks:
+      - pychat-net
+
+volumes:
+  db_data:
+  app_upload:
+
+networks:
+  pychat-net:
