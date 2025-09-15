@@ -31,30 +31,30 @@ def create_app():
         REDIS_URL=os.getenv('REDIS_URL', 'redis://redis:6379/0')
     )
 
-        # 初始化扩展
-        setup_logger(app)
-        db.init_app(app)
-        jwt = JWTManager(app)
-        limiter = Limiter(key_func=get_remote_address, app=app)
-        socketio = SocketIO(app, cors_allowed_origins='*', async_mode='gevent')
+    # 初始化扩展
+    setup_logger(app)
+    db.init_app(app)
+    jwt = JWTManager(app)
+    limiter = Limiter(key_func=get_remote_address, app=app)
+    socketio = SocketIO(app, cors_allowed_origins='*', async_mode='gevent')
 
-        # 现在可以安全地导入 message
-        from .message import msg_bp, on_connect  # 延迟导入
+    # 现在可以安全地导入 message
+    from .message import msg_bp, on_connect  # 延迟导入
 
-        # 注册蓝图
-        from .auth import auth_bp
-        from .message import msg_bp
-        app.register_blueprint(auth_bp)
-        app.register_blueprint(msg_bp)
+    # 注册蓝图
+    from .auth import auth_bp
+    from .message import msg_bp
+    app.register_blueprint(auth_bp)
+    app.register_blueprint(msg_bp)
 
-        # 健康检查
-        @app.get('/health')
-        def health():
-            db.session.execute('SELECT 1')
-            init_redis().ping()
-            return {'status': 'ok'}
+    # 健康检查
+    @app.get('/health')
+    def health():
+        db.session.execute('SELECT 1')
+        init_redis().ping()
+        return {'status': 'ok'}
 
-        return app
+    return app
 
 
 __all__ = ['create_app', 'db', 'auth_bp', 'msg_bp', 'socketio']  # 添加 socketio 到 __all__
