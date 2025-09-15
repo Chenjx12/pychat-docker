@@ -5,7 +5,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity
 from flask_socketio import SocketIO, emit
 from .models import db, Message
 from .utils import init_redis
-from . import socketio  # 从 app 包导入 socketio
+
 
 msg_bp = Blueprint('msg', __name__, url_prefix='')
 r = init_redis()
