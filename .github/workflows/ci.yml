@@ -29,8 +29,8 @@ jobs:
           pip install -e . 
 
       - name: Run tests
-        run: pytest
-        working-directory: ${{ github.workspace }}
+        working-directory: app
+        run: pytest tests/
 
   deploy-to-docker-hub:
     needs: build-and-test
