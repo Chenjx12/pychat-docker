@@ -61,3 +61,4 @@ jobs:
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/pychat-docker:latest  # 最新版
             ${{ github.ref.replace('refs/tags/', '') }}  # 当前 Tag 名称 (如 v1.0.0)
+
