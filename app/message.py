@@ -2,7 +2,7 @@
 from datetime import datetime
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from flask_socketio import emit
+from flask_socketio import SocketIO, emit
 from .models import db, Message
 from .utils import init_redis
 from . import socketio  # 从 app 包导入 socketio
@@ -23,12 +23,12 @@ def history():
 @jwt_required()
 def on_connect():
     r.sadd('online', request.sid)
-    socketio.emit('online', {'count': r.scard('online')}, broadcast=True)
+    emit('online', {'count': r.scard('online')}, broadcast=True)
 
 @socketio.on('disconnect')
 def on_disconnect():
     r.srem('online', request.sid)
-    socketio.emit('online', {'count': r.scard('online')}, broadcast=True)
+    emit('online', {'count': r.scard('online')}, broadcast=True)
 
 @socketio.on('chat')
 @jwt_required()
@@ -36,6 +36,6 @@ def on_chat(json):
     user = get_jwt_identity()
     body = str(json.get('body', ''))[:2000]
     Message.save(user, body)
-    socketio.emit('chat',
+    emit('chat',
          {'from': user, 'body': body, 'ts': datetime.utcnow().isoformat()},
          broadcast=True)
