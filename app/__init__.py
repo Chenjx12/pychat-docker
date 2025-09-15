@@ -8,6 +8,7 @@ from .models import db
 from .auth import auth_bp
 from .message import msg_bp
 from .utils import setup_logger, init_redis, logger
+from app import socketio
 
 def create_app():
     app = Flask(__name__)
