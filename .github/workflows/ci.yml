@@ -60,4 +60,4 @@ jobs:
           push: true  # 推送到镜像仓库
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/pychat-docker:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/pychat-docker:${{ github.ref.replace('refs/tags/', '') }}  # 当前 Tag 名称 (如 v1.0.0)
+            ${{ secrets.DOCKERHUB_USERNAME }}/pychat-docker:${{ github.ref_name }}
