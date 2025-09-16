@@ -1,6 +1,7 @@
 import pytest
 import requests
-from app import create_app
+import app
+from app.app import create_app
 
 
 @pytest.fixture
