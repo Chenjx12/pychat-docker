@@ -7,12 +7,14 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token, set_access_cookies
 from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
+
 from .models import db, User
 from .utils import logger
 
 auth_bp = Blueprint('auth', __name__, url_prefix='')
-limiter = Limiter()
-
+# 初始化 Limiter
+limiter = Limiter(key_func=get_remote_address)
 
 @auth_bp.post('/reg')
 @limiter.limit('5 per minute')
