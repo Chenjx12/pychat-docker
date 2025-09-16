@@ -1,11 +1,10 @@
-"""
-公共工具：Redis、日志、蓝图常用
-"""
 import json, logging, structlog
 import os
-
 import redis
 from flask import Flask
+
+# 定义全局 logger
+logger = structlog.get_logger()
 
 def init_redis():
     return redis.from_url(os.getenv('REDIS_URL', 'redis://redis:6379/0'), decode_responses=True)
