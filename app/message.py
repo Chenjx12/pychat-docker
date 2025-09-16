@@ -3,6 +3,7 @@
 - Redis 统计在线人数
 - 消息持久化
 """
+# message.py
 from datetime import datetime
 from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
@@ -22,20 +23,22 @@ def history():
     return {'data': data, 'has_more': len(data) == size}
 
 # WebSocket 事件
-from .app import socketio  # 将导入移到这里
+def _get_socketio():
+    from .app import socketio
+    return socketio
 
-@socketio.on('connect')
+@_get_socketio().on('connect')
 @jwt_required()
 def on_connect():
     r.sadd('online', request.sid)
     emit('online', {'count': r.scard('online')}, broadcast=True)
 
-@socketio.on('disconnect')
+@_get_socketio().on('disconnect')
 def on_disconnect():
     r.srem('online', request.sid)
     emit('online', {'count': r.scard('online')}, broadcast=True)
 
-@socketio.on('chat')
+@_get_socketio().on('chat')
 @jwt_required()
 def on_chat(json):
     user = get_jwt_identity()

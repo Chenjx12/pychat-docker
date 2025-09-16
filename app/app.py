@@ -5,6 +5,7 @@ Flask 应用工厂
 - Redis
 - SocketIO（gevent）
 """
+# app.py
 import os
 from flask import Flask
 from flask_socketio import SocketIO
@@ -14,7 +15,7 @@ from flask_limiter.util import get_remote_address
 
 from .models import db
 from .auth import auth_bp
-from .message import msg_bp  # 确保这里正确导入
+from .message import msg_bp
 from .utils import init_redis, setup_logger
 
 # 全局扩展先声明，后续 init_app 绑定
