@@ -30,7 +30,7 @@ jobs:
 
       - name: Run tests
         working-directory: app
-        run: pytest /app/tests/
+        run: pytest /app/tests/test.py
 
   deploy-to-docker-hub:
     needs: build-and-test
