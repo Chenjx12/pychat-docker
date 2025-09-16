@@ -5,24 +5,15 @@ Flask 应用工厂
 - Redis
 - SocketIO（gevent）
 """
-# app.py
+
 import os
 from flask import Flask
-from flask_socketio import SocketIO
-from flask_jwt_extended import JWTManager
-from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
-
 from .models import db
 from .auth import auth_bp
 from .message import msg_bp
 from .utils import init_redis, setup_logger
-
-# 全局扩展先声明，后续 init_app 绑定
-socketio = SocketIO(logger=False, engineio_logger=False,
-                    cors_allowed_origins=[], async_mode='gevent')
-jwt = JWTManager()
-limiter = Limiter(key_func=get_remote_address)
+# 从extensions导入扩展
+from .extensions import socketio, jwt, limiter
 
 def create_app():
     app = Flask(__name__)
