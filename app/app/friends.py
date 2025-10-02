@@ -55,7 +55,6 @@ def send_friend_request():
     emit('new_friend_request', {'user_id': current_user_id}, room=friend_user_id, namespace='/')
     return jsonify({'code': 0, 'msg': '好友请求已发送'}), 201
 
-
 @friends_bp.post('/handle_friend_request')
 @jwt_required()
 def handle_friend_request():
@@ -91,7 +90,7 @@ def handle_friend_request():
                 'friend_user_id': current_user_id
             }, room=user_id)
 
-            return jsonify({'code': 0, 'msg': '好友请求已接受'}), 200
+            return jsonify({'code': 0, 'msg': '好友请求已接受', 'room_id': room.room_id}), 200
         else:
             return jsonify({'code': 1, 'msg': '好友请求不存在'}), 404
     elif action == 'reject':

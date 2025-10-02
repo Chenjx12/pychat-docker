@@ -1,24 +1,25 @@
+let currentRoomId; // 声明全局变量
+let currentUserId; // 声明全局变量
+
 $(document).ready(function() {
     console.log("Document is ready. Initializing chat functionality...");
 
     // 获取 URL 参数
     const urlParams = new URLSearchParams(window.location.search);
-    const userId = urlParams.get('user');
-    const groupId = urlParams.get('group');
+    const roomId = urlParams.get('room');
 
-    if (userId) {
-        // 进入私聊界面
-        currentRoomId = userId;
-        $('#chat-room-name').text(`与 ${userId} 的私聊`);
-    } else if (groupId) {
-        // 进入群聊界面
-        currentRoomId = groupId;
-        $('#chat-room-name').text(`群聊: ${groupId}`);
+    if (roomId) {
+        // 进入指定的聊天界面
+        currentRoomId = roomId;
+        $('#chat-room-name').text(`聊天: ${roomId}`);
     } else {
         // 默认进入全局聊天室
         currentRoomId = 1;
         $('#chat-room-name').text('全局聊天');
     }
+
+    // 获取当前登录用户的用户ID
+    currentUserId = getJwtIdentity(getCookie('access_token_cookie'));
 
     // 初始化 WebSocket 连接
     if (getCookie('access_token_cookie')) {
@@ -47,6 +48,9 @@ $(document).ready(function() {
         event.preventDefault(); // 阻止默认行为
         window.location.href = '/contact'; // 跳转到 /contact
     });
+
+    // 加载房间历史消息
+    loadRoomHistory(currentRoomId);
 });
 
 // WebSocket 连接
@@ -91,14 +95,15 @@ function connectWS() {
 
     socket.on('chat', function(data) {
         if (data.room_id === currentRoomId) {
-            addMsg(data.username, data.body, data.from === getJwtIdentity(getCookie('access_token_cookie')));
+            addMsg(data.sender, data.body, data.sender_id);
         }
     });
 
     socket.on('new_private_chat', function(data) {
         const room_id = data.room_id;
         const friend_user_id = data.friend_user_id;
-
+        // 更新当前房间 ID
+        currentRoomId = room_id;
         // 跳转到新私聊房间
         window.location.href = `/chat?room=${room_id}`;
     });
@@ -113,7 +118,8 @@ function send() {
 }
 
 // 渲染消息
-function addMsg(user, body, self = false) {
+function addMsg(user, body, senderId) {
+    const self = senderId === currentUserId;
     const div = $('<div>').addClass('msg' + (self ? ' self' : '')).text(`${user}: ${body}`);
     $('#chat-messages').append(div);
     $('#chat-messages').scrollTop($('#chat-messages')[0].scrollHeight);
@@ -189,20 +195,27 @@ function switchRoom(roomId) {
 }
 
 // 加载房间历史消息
-function loadRoomHistory(roomId) {
-    API(`/msg/room_history?room_id=${roomId}&page=1&size=50`, {}, 'GET')
-        .done(function(data) {
-            if (data.code === 0) {
-                data.data.forEach(msg => {
-                    addMsg(msg.sender, msg.body, msg.sender === getJwtIdentity(getCookie('access_token_cookie')));
-                });
+async function loadRoomHistory(roomId) {
+    try {
+        const data = await API(`/room_history?room_id=${roomId}&page=1&size=50`, {}, 'GET');
+        if (data.code === 0) {
+            if (data.data.length === 0) {
+                // 没有历史消息，不显示任何内容或显示友好的提示信息
+                $('#chat-messages').html('<p class="no-messages">没有历史消息</p>');
             } else {
-                console.error('加载历史消息失败:', data.msg);
+                // 有历史消息，显示消息
+                data.data.forEach(msg => {
+                    addMsg(msg.sender, msg.body, msg.sender_id);
+                });
             }
-        })
-        .fail(function(xhr, status, error) {
-            console.error('加载历史消息失败:', error);
-        });
+        } else {
+            // 处理其他错误情况
+            showError(data.msg || '加载历史消息失败');
+        }
+    } catch (error) {
+        // 处理网络错误
+        showError('加载历史消息失败，请稍后重试');
+    }
 }
 
 // 显示创建房间对话框

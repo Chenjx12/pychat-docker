@@ -37,8 +37,13 @@ def room_history():
         if not membership:
             return jsonify({'code': 1, 'msg': '您不在该房间中'}), 403
 
-    data = Message.get_messages_for_room(room_id, page, size)
-    return jsonify({'code': 0, 'data': data, 'has_more': len(data) == size})
+    messages = Message.get_messages_for_room(room_id, page, size)
+    data = [{'sender_id': msg['sender'], 'sender': msg['username'], 'body': msg['body'], 'ts': msg['ts'], 'seq': msg['seq']} for msg in messages]
+
+    if not data:
+        return jsonify({'code': 0, 'data': [], 'has_more': False}), 200
+
+    return jsonify({'code': 0, 'data': data, 'has_more': len(data) == size}), 200
 
 @socketio.on('connect')
 def on_connect():
@@ -129,8 +134,8 @@ def on_chat(json):
 
     # 发送消息到房间
     emit('chat', {
-        'from': user_id,
-        'username': username,
+        'sender_id': user_id,
+        'sender': username,
         'body': body,
         'ts': datetime.utcnow().isoformat(),
         'room_id': room_id

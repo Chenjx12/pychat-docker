@@ -79,7 +79,7 @@ async function refreshToken() {
 // 从 JWT Token 中获取用户信息
 function getJwtIdentity(token) {
     const payload = JSON.parse(atob(token.split('.')[1]));
-    return payload.identity;
+    return payload.sub;
 }
 
 // 显示错误信息

@@ -33,7 +33,24 @@ async function searchUserAndRooms() {
             users.forEach(user => {
                 const listItem = $('<li>').text(`${user.username} (${user.user_id})`);
                 listItem.on('click', () => {
-                    sendFriendRequest(user.user_id);  // 传递用户ID
+                    // 检查是否已经是好友
+                    API('/friends/get_friends', {}, 'GET')
+                        .then(friendData => {
+                            if (friendData.code === 0) {
+                                const friends = friendData.friends;
+                                const isAlreadyFriend = friends.some(friend => friend.user_id === user.user_id);
+                                if (isAlreadyFriend) {
+                                    // 跳转到私聊界面
+                                    window.location.href = `/chat?room=${user.user_id}`;
+                                } else {
+                                    // 发送好友请求
+                                    sendFriendRequest(user.user_id);
+                                }
+                            }
+                        })
+                        .catch(error => {
+                            showError('检查好友状态失败，请稍后重试');
+                        });
                 });
                 userList.append(listItem);
             });
@@ -66,38 +83,17 @@ async function searchUserAndRooms() {
 
 // 发送好友申请
 function sendFriendRequest(friendUserId) {
-    // 首先检查是否已经是好友
-    API('/friends/get_friends', {}, 'GET')
-    .then(data => {
-        if (data.code === 0) {
-            const friends = data.friends;
-            // 检查是否已经是好友
-            const isAlreadyFriend = friends.some(friend => friend.user_id === friendUserId);
-
-            if (isAlreadyFriend) {
-                showError('该用户已经是您的好友');
-                return;
-            }
-
-            // 如果不是好友，继续发送好友请求
-            return API('/friends/send_friend_request', { friend_user_id: friendUserId }, 'POST');
-        } else {
-            throw new Error('获取好友列表失败');
-        }
-    })
-    .then(data => {
-        if (data) {
+    API('/friends/send_friend_request', { friend_user_id: friendUserId })
+        .then(data => {
             if (data.code === 0) {
                 showSuccess('好友请求已发送');
             } else {
                 showError(data.msg || '发送好友请求失败');
             }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        showError('操作失败，请稍后重试');
-    });
+        })
+        .catch(error => {
+            showError('发送好友请求失败，请稍后重试');
+        });
 }
 
 

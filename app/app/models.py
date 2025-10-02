@@ -6,7 +6,7 @@ import os
 import uuid
 from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import or_
+from sqlalchemy import or_, cast, Integer
 
 from .extensions import db
 import bcrypt
@@ -40,7 +40,9 @@ class User(db.Model):
 
         # 创建用户
         user = User(user_id=user_id, username=username, pwd_hash=pwd_hash, salt=salt)
+        room_add = RoomMember(room_id=1, user_id= user_id, last_read_seq=0)
         db.session.add(user)
+        db.session.add(room_add)
         db.session.commit()
 
     @staticmethod
@@ -66,7 +68,8 @@ class User(db.Model):
 
     @staticmethod
     def generate_user_id():
-        max_user_id = db.session.query(db.func.max(User.user_id)).scalar()
+        # 查询 user_id 的最大值，并将其转换为整数类型
+        max_user_id = db.session.query(db.func.max(cast(User.user_id, Integer))).scalar()
         if max_user_id is None:
             return '10000001'
         return str(int(max_user_id) + 1).zfill(8)
@@ -205,6 +208,7 @@ class Message(db.Model):
                 .offset((page - 1) * size)
                 .all())
         return [{'sender': m.sender,
+                 'username': (User.find_by_id(m.sender)).username,  # 包含用户名
                  'body': m.body,
                  'ts': m.ts.isoformat(),
                  'seq': m.seq} for m in msgs]
