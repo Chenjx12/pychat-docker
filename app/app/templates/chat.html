@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <title>PyChat-Pro - 聊天室</title>
+    <link rel="stylesheet" href="/static/css/chat_styles.css">
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-sidebar">
+            <div id="search-box">
+                <input type="text" id="search-input" placeholder="搜索好友或群聊...">
+                <button id="search-button">搜索</button>
+            </div>
+            <!-- 聊天选择列表 -->
+            <ul id="chat-list">
+                <!-- 聊天项将通过 JavaScript 动态生成 -->
+            </ul>
+            <button id="friend-request-button">好友申请</button>
+        </div>
+        <div id="chat-main">
+            <div id="chat-header">
+                <div class="header-left">
+                    <a href="/center" class="circle-link">
+                        <div class="circle"></div>
+                    </a>
+                    <span id="chat-room-name">聊天室</span>
+                </div>
+                <a href="/" class="hamburger-link">
+                    <div class="hamburger">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </div>
+                </a>
+            </div>
+            <div id="chat-messages">
+                <!-- 消息将通过 JavaScript 动态生成 -->
+            </div>
+            <div id="chat-input-container">
+                <input type="text" id="chat-input-field" placeholder="输入消息...">
+                <button id="chat-send-button">发送</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 好友申请弹窗 -->
+    <div id="friend-request-popup" class="popup">
+        <div class="popup-content">
+            <span class="popup-close">&times;</span>
+            <h2>好友申请</h2>
+            <ul id="friend-request-list">
+                <!-- 好友申请项将通过 JavaScript 动态生成 -->
+            </ul>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.0/socket.io.js"></script>
+    <script src="/static/js/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/friend.js"></script>
+    <script src="/static/js/utils.js"></script>
+    <script src="/static/js/chat.js"></script>
+</body>
+</html>

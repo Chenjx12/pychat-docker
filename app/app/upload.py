@@ -1,3 +1,9 @@
+"""
+文件上传
+- MIME 校验 + 后缀白名单
+- UUID 重命名
+- 图片压缩（JPEG 85%）
+"""
 import os
 import uuid
 import io

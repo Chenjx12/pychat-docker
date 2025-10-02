@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8"/>
+    <title>PyChat-Pro - 个人中心</title>
+    <link rel="stylesheet" href="/static/css/center_styles.css">
+</head>
+<body>
+    <div id="profile">
+        <h2>PyChat-Pro - 个人中心</h2>
+        <div>
+            <label for="profile-avatar">上传头像：</label>
+            <input type="file" id="profile-avatar" accept="image/*" onchange="uploadAvatar()">
+            <img id="profile-avatar-preview" src="/static/images/default-avatar.png" alt="头像预览" style="width: 100px; height: 100px; border-radius: 50%;">
+        </div>
+    <div>
+        <label for="profile-username">当前用户名：</label>
+        <span id="profile-username-display"></span>
+    </div>
+    <div>
+        <label for="profile-username">新用户名：</label>
+        <input id="profile-username" type="text" placeholder="新用户名" autocomplete="username">
+        <button onclick="updateUsername()">修改用户名</button>
+    </div>
+        <div>
+            <label for="profile-password">当前密码：</label>
+            <input id="profile-password" type="password" placeholder="当前密码" autocomplete="current-password">
+            <label for="profile-new-password">新密码：</label>
+            <input id="profile-new-password" type="password" placeholder="新密码" autocomplete="new-password">
+            <button onclick="updatePassword()">修改密码</button>
+        </div>
+        <div>
+            <button onclick="logout()">退出登录</button>
+        </div>
+    </div>
+
+    <script src="/static/js/jquery-3.6.0.min.js"></script>
+    <script src="/static/js/utils.js"></script>
+    <script src="/static/js/profile.js"></script>
+</body>
+</html>

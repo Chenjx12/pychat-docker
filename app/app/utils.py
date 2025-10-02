@@ -1,6 +1,8 @@
+"""
+公共工具：Redis、日志、蓝图常用
+"""
 import json, logging, structlog
 import os
-
 import redis
 from flask import Flask
 
@@ -22,3 +24,6 @@ def setup_logger(app: Flask):
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(logging.INFO)
+
+# JWT黑名单
+blacklist = set()
