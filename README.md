@@ -67,16 +67,17 @@ pychat-docker/
 ## docker-compose
 
 ```yaml
-version: "3.9"
 
 services:
   db:
     image: mysql:8.0
     container_name: pychat-db
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
     env_file: .env
     volumes:
-      - ./sql:/docker-entrypoint-initdb.d
+      - ./sql/init.sql:/docker-entrypoint-initdb.d/init.sql
       - db_data:/var/lib/mysql
     networks:
       - pychat-net
@@ -88,6 +89,8 @@ services:
   redis:
     image: redis:7-alpine
     container_name: pychat-redis
+    environment:
+      - TZ=Asia/Shanghai
     restart: unless-stopped
     networks:
       - pychat-net
@@ -96,6 +99,8 @@ services:
     build: ./app
     container_name: pychat-app
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
     env_file: .env
     depends_on:
       - db
@@ -111,8 +116,10 @@ services:
     image: nginx:alpine
     container_name: pychat-nginx
     restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
     ports:
-      - "9999:80"
+      - "10000:80"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf
       - app_upload:/app/upload:ro
